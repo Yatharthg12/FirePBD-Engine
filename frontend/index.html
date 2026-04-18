@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FirePBD Engine — Fire Safety Analysis Platform</title>
+  <meta name="description" content="AI-assisted Performance-Based Design fire safety simulation system for real-world building analysis, RSET/ASET computation, and evacuation modelling." />
+  <meta name="keywords" content="fire safety, PBD, evacuation simulation, RSET, ASET, building analysis" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Top Navigation ──────────────────────────────────────────────────────── -->
+<header class="nav-bar">
+  <div class="nav-logo">
+    <span class="logo-flame">🔥</span>
+    <span class="logo-text">FirePBD <span class="logo-accent">Engine</span></span>
+    <span class="logo-badge">v1.0</span>
+  </div>
+  <nav class="nav-links">
+    <button class="nav-tab active" data-tab="dashboard" id="navDashboard">Dashboard</button>
+    <button class="nav-tab" data-tab="simulation" id="navSimulation">Simulation</button>
+    <button class="nav-tab" data-tab="analysis" id="navAnalysis">Analysis</button>
+    <button class="nav-tab" data-tab="montecarlo" id="navMonteCarlo">Monte Carlo</button>
+    <button class="nav-tab" data-tab="optimization" id="navOptimization">Optimization</button>
+  </nav>
+  <div class="nav-status">
+    <span class="status-dot" id="apiStatusDot"></span>
+    <span class="status-label" id="apiStatus">Connecting…</span>
+  </div>
+</header>
+
+<!-- ── Main Layout ─────────────────────────────────────────────────────────── -->
+<main class="main-content">
+
+  <!-- ══════════════════════════ DASHBOARD TAB ══════════════════════════════ -->
+  <section class="tab-panel active" id="tabDashboard">
+
+    <!-- Left: Upload + Blueprint Viewer -->
+    <aside class="left-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Blueprint Upload</h2>
+        <span class="panel-subtitle">SVG or PNG/JPG</span>
+      </div>
+
+      <!-- Drop zone -->
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">📐</div>
+        <p class="drop-title">Drop blueprint here</p>
+        <p class="drop-sub">SVG (CubiCasa) · PNG · JPG</p>
+        <label class="btn-secondary" for="fileInput">Browse File</label>
+        <input type="file" id="fileInput" accept=".svg,.png,.jpg,.jpeg,.bmp" hidden />
+      </div>
+
+      <!-- Upload progress -->
+      <div class="upload-status" id="uploadStatus" style="display:none">
+        <div class="progress-bar"><div class="progress-fill" id="uploadProgress"></div></div>
+        <p class="upload-msg" id="uploadMsg">Processing blueprint…</p>
+      </div>
+
+      <!-- Building summary cards -->
+      <div class="building-summary" id="buildingSummary" style="display:none">
+        <div class="metric-row">
+          <div class="mini-metric">
+            <span class="mini-label">Zones</span>
+            <span class="mini-value" id="sumZones">—</span>
+          </div>
+          <div class="mini-metric">
+            <span class="mini-label">Openings</span>
+            <span class="mini-value" id="sumOpenings">—</span>
+          </div>
+          <div class="mini-metric">
+            <span class="mini-label">Exits</span>
+            <span class="mini-value" id="sumExits">—</span>
+          </div>
+          <div class="mini-metric">
+            <span class="mini-label">Area m²</span>
+            <span class="mini-value" id="sumArea">—</span>
+          </div>
+        </div>
+        <div class="metric-row">
+          <div class="mini-metric full-width">
+            <span class="mini-label">Building ID</span>
+            <span class="mini-value mono" id="sumBuildingId">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blueprint canvas viewer -->
+      <div class="canvas-container" id="viewerContainer" style="display:none">
+        <canvas id="blueprintCanvas" class="blueprint-canvas"></canvas>
+      </div>
+
+      <!-- Simulation controls -->
+      <div class="sim-controls" id="simControls" style="display:none">
+        <div class="control-group">
+          <label class="ctrl-label">Ignition Zone</label>
+          <select class="ctrl-select" id="ignitionZoneSelect">
+            <option value="auto">Auto (worst-case non-exit)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label class="ctrl-label">Simulation Steps</label>
+          <input class="ctrl-input" type="number" id="simSteps" value="90" min="10" max="360" />
+        </div>
+        <div class="control-row">
+          <label class="ctrl-check">
+            <input type="checkbox" id="enableMC" /> Monte Carlo (500 runs)
+          </label>
+          <label class="ctrl-check">
+            <input type="checkbox" id="enableReport" /> PDF Report
+          </label>
+        </div>
+        <button class="btn-primary btn-large" id="runSimBtn">
+          ▶ Run Simulation
+        </button>
+      </div>
+
+      <div class="scenario-card" id="scenarioCard">
+        <div class="scenario-title">Scenario</div>
+        <div class="scenario-body">Click a zone on the blueprint to select the ignition point and route.</div>
+      </div>
+    </aside>
+
+    <!-- Centre: Live Simulation Canvas -->
+    <div class="centre-panel">
+      <div class="canvas-header">
+        <h2 class="canvas-title">Live Blueprint</h2>
+        <div class="canvas-controls">
+          <div class="step-display">
+            Step <span id="currentStep">0</span> / <span id="totalSteps">—</span>
+            &nbsp;|&nbsp;
+            <span id="simTimestamp">0s</span>
+          </div>
+        </div>
+        <div class="layer-toggles">
+          <button class="layer-btn active" id="toggleFire" data-layer="fire">🔥 Fire</button>
+          <button class="layer-btn active" id="toggleSmoke" data-layer="smoke">💨 Smoke</button>
+          <button class="layer-btn active" id="toggleAgents" data-layer="agents">👤 Agents</button>
+          <button class="layer-btn" id="toggleHeatmap" data-layer="heatmap">🌡 Temp</button>
+        </div>
+      </div>
+
+      <!-- Simulation canvas -->
+      <div class="sim-canvas-wrapper">
+        <canvas id="simCanvas" width="700" height="500"></canvas>
+        <div class="sim-placeholder" id="simPlaceholder">
+          <div class="placeholder-icon">🏗</div>
+          <p>Upload a blueprint and place a marker</p>
+          <p class="placeholder-sub">The live view shows the routed blueprint, not a heatmap</p>
+        </div>
+      </div>
+
+      <!-- Event log -->
+      <div class="event-log-container">
+        <h3 class="log-title">Event Log</h3>
+        <div class="event-log" id="eventLog">
+          <div class="log-empty">Events will appear here during simulation…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Live Metrics -->
+    <aside class="right-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Live Metrics</h2>
+      </div>
+
+      <div class="metric-card risk-card" id="riskCard">
+        <div class="metric-card-label">Overall Risk Score</div>
+        <div class="metric-card-value" id="riskScore">—</div>
+        <div class="metric-card-sub" id="riskLevel">—</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-label">RSET (Required Safe Egress Time)</div>
+        <div class="metric-card-value" id="rsetValue">—</div>
+        <div class="metric-card-sub">seconds</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-label">ASET (Available Safe Egress Time)</div>
+        <div class="metric-card-value" id="asetValue">—</div>
+        <div class="metric-card-sub">seconds</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-label">RSET / ASET Margin</div>
+        <div class="metric-card-value" id="marginValue">—</div>
+        <div class="metric-card-sub" id="marginStatus">Required: ≥ 120s (BS 9999)</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-label">Evacuation Progress</div>
+        <div class="evac-bar-wrapper">
+          <div class="evac-bar" id="evacBar"></div>
+        </div>
+        <div class="evac-stats">
+          <span class="evac-s safe" id="statEvacuated">0 evacuated</span>
+          <span class="evac-s warn" id="statWaiting">0 waiting</span>
+          <span class="evac-s danger" id="statDead">0 dead</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-label">Fire Status</div>
+        <div class="fire-stats">
+          <div class="fire-stat">
+            <span class="fs-label">Burning</span>
+            <span class="fs-value danger" id="statBurning">0</span>
+          </div>
+          <div class="fire-stat">
+            <span class="fs-label">Max Temp</span>
+            <span class="fs-value warn" id="statMaxTemp">20°C</span>
+          </div>
+          <div class="fire-stat">
+            <span class="fs-label">Flashover</span>
+            <span class="fs-value" id="statFlashover">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download section -->
+      <div class="download-bar" id="downloadBar" style="display:none">
+        <button class="btn-secondary" id="downloadReportBtn">⬇ PDF Report</button>
+        <button class="btn-secondary" id="viewResultsBtn">📊 Full Results</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ════════════════════════ ANALYSIS TAB ════════════════════════════════ -->
+  <section class="tab-panel" id="tabAnalysis">
+    <div class="analysis-summary" id="analysisSummary">
+      <div class="analysis-note">Run a simulation to populate the time-series view for the selected scenario.</div>
+    </div>
+    <div class="analysis-grid">
+      <div class="chart-card">
+        <h3 class="chart-title">Simulation Trends</h3>
+        <canvas id="chartAnalysisTrend"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">RSET vs ASET Timeline</h3>
+        <canvas id="chartRsetAset"></canvas>
+      </div>
+    </div>
+    <div class="analysis-table-card">
+      <h3 class="chart-title">Recent Steps</h3>
+      <div class="analysis-table-wrap">
+        <table class="analysis-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Burning</th>
+              <th>Evacuated</th>
+              <th>Peak Temp</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="analysisHistoryTable">
+            <tr><td colspan="5" class="table-placeholder">Run a simulation to populate the timeline table.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ MONTE CARLO TAB ═══════════════════════════════ -->
+  <section class="tab-panel" id="tabMonteCarlo">
+    <div class="mc-layout">
+      <div class="mc-summary" id="mcSummary">
+        <div class="mc-placeholder">Monte Carlo results will appear after simulation completes.</div>
+      </div>
+      <div class="mc-panel">
+        <h3 class="chart-title">Run Outcome Split</h3>
+        <canvas id="chartMcPass"></canvas>
+      </div>
+      <div class="chart-card wide">
+        <h3 class="chart-title">RSET Distribution (Monte Carlo)</h3>
+        <canvas id="chartMcRset"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════ OPTIMIZATION TAB ════════════════════════════════ -->
+  <section class="tab-panel" id="tabOptimization">
+    <div class="opt-layout">
+      <div class="opt-summary" id="optSummary"></div>
+      <div class="opt-header">
+        <h2>🛠 Optimization Recommendations</h2>
+        <p class="opt-sub">Ranked by priority and estimated RSET improvement. Based on NFPA 101, BS 9999, and SFPE Handbook.</p>
+      </div>
+      <div class="opt-impact" id="optImpact"></div>
+      <div class="rec-list" id="recList">
+        <div class="rec-placeholder">Run a simulation to generate recommendations.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ SIMULATION TAB ════════════════════════════════ -->
+  <section class="tab-panel" id="tabSimulation">
+    <div class="sim-config-layout">
+      <h2>Simulation Configuration</h2>
+      <div class="analysis-note">This tab changes the scenario inputs only. Live routing and playback stay on the dashboard.</div>
+      <div class="config-grid">
+        <div class="config-card">
+          <h3>Fire Model</h3>
+          <div class="config-row"><label>Base Spread Probability</label><input type="range" min="0" max="1" step="0.05" value="0.25" id="cfgSpreadProb"><span id="cfgSpreadProbVal">0.25</span></div>
+          <div class="config-row"><label>Timestep (seconds)</label><input type="number" value="5" min="1" max="30" id="cfgTimestep"></div>
+        </div>
+        <div class="config-card">
+          <h3>Evacuation Model</h3>
+          <div class="config-row"><label>Walk Speed (m/s)</label><input type="range" min="0.5" max="2.0" step="0.1" value="1.2" id="cfgWalkSpeed"><span id="cfgWalkSpeedVal">1.2</span></div>
+          <div class="config-row"><label>Reaction Time Mean (s)</label><input type="number" value="45" min="0" max="300" id="cfgReactionTime"></div>
+        </div>
+        <div class="config-card">
+          <h3>Monte Carlo</h3>
+          <div class="config-row"><label>Runs</label><input type="number" value="200" min="10" max="1000" id="cfgMcRuns"></div>
+          <div class="config-row"><label>Confidence Level</label><input type="range" min="80" max="99" step="1" value="90" id="cfgConfidence"><span id="cfgConfidenceVal">90%</span></div>
+        </div>
+      </div>
+      <div class="sim-log-container">
+        <h3>Simulation Log</h3>
+        <pre class="sim-log" id="simLog"></pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── Loading Overlay ─────────────────────────────────────────────────────── -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none">
+  <div class="loading-box">
+    <div class="fire-loader">🔥</div>
+    <p class="loading-title">Running Simulation</p>
+    <div class="loading-bar"><div class="loading-fill" id="loadingFill"></div></div>
+    <p class="loading-sub" id="loadingMsg">Initialising fire physics…</p>
+  </div>
+</div>
+
+<!-- ── Toast Notifications ────────────────────────────────────────────────── -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="viewer.js"></script>
+<script src="simulation.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>
