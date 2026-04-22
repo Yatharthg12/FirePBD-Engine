@@ -144,19 +144,19 @@ FirePBD_Engine/
 ```mermaid
 flowchart TD
   U[User uploads blueprint] --> V[Backend saves file]
-  V --> W[BlueprintAgent.process()]
+  V --> W["BlueprintAgent process"]
   W --> X{SVG or raster?}
-  X -->|SVG| Y[SVG parser]
-  X -->|Raster| Z[OpenCV pipeline]
-  Y --> AA[BuildingModel]
+  X -->|SVG| Y["SVG parser"]
+  X -->|Raster| Z["OpenCV pipeline"]
+  Y --> AA["BuildingModel"]
   Z --> AA
-  AA --> AB[Frontend fetches model JSON]
-  AB --> AC[Blueprint viewer renders model]
-  AA --> AD[TopologyAgent builds graph + grid]
-  AD --> AE[Fire + evacuation simulation]
-  AE --> AF[WebSocket snapshots]
-  AE --> AG[Risk analysis]
-  AG --> AH[Optional PDF report]
+  AA --> AB["Frontend fetches model JSON"]
+  AB --> AC["Blueprint viewer renders model"]
+  AA --> AD["TopologyAgent builds graph + grid"]
+  AD --> AE["Fire + evacuation simulation"]
+  AE --> AF["WebSocket snapshots"]
+  AE --> AG["Risk analysis"]
+  AG --> AH["Optional PDF report"]
 ```
 
 ---
@@ -371,5 +371,10 @@ When contributing, keep changes aligned with the existing architecture and add t
 
 ## License
 
-This project has been developed by Yatharth Garg and is not to be replicated,used or sold for any purposes. It is to only be referred purely for educational purposes only.
+This repository is provided for educational purposes only. Replication, use, redistribution, resale, or any other form of distribution is not allowed.
+
+## Author
+
+Yatharth Garg  
+Research-Oriented Systems Developer
 
