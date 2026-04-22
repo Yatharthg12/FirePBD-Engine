@@ -1,4 +1,4 @@
-# FirePBD Engine
+# FirePBD (Performance-Based Design) Engine
 
 FirePBD Engine is a performance-based fire safety analysis platform that turns building blueprints into a navigable building model, then runs fire spread, evacuation, risk, optimization, and report workflows on top of that geometry.
 
