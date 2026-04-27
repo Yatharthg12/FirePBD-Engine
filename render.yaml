@@ -6,6 +6,8 @@ services:
     autoDeploy: true
     healthCheckPath: /api/health
     envVars:
+      - key: PORT
+        value: "8000"
       - key: API_HOST
         value: 0.0.0.0
       - key: ENABLE_MC
