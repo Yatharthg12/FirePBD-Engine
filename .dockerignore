@@ -11,4 +11,3 @@ dataset
 training
 docs
 *.ipynb
-backend/tests
