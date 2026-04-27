@@ -4,7 +4,16 @@
  * file upload, drag-and-drop, tab navigation, toast notifications.
  */
 
-const API = 'http://localhost:8000';
+const API = (
+  window.location?.origin &&
+  window.location.origin !== 'null' &&
+  window.location.origin !== 'file://'
+)
+  ? window.location.origin
+  : 'http://localhost:8000';
+const WS_BASE = API.startsWith('https://')
+  ? API.replace(/^https:/, 'wss:')
+  : API.replace(/^http:/, 'ws:');
 let _buildingId = null;
 let _simId = null;
 let _ws = null;
@@ -604,7 +613,7 @@ async function runSimulation() {
 // ─── WebSocket Streaming ──────────────────────────────────────────────────────
 
 function connectWebSocket(simId) {
-  const wsUrl = `ws://localhost:8000/api/simulation/${simId}/stream`;
+  const wsUrl = `${WS_BASE}/api/simulation/${simId}/stream`;
   _ws = new WebSocket(wsUrl);
 
   _ws.onopen = () => {
@@ -1170,5 +1179,5 @@ document.addEventListener('DOMContentLoaded', () => {
   switchTab('dashboard');
   simLog('[FirePBD Engine v1.0] Ready. Upload a blueprint to begin.');
   simLog('[INFO] Supported formats: CubiCasa SVG (recommended), PNG, JPG');
-  simLog('[INFO] Backend: http://localhost:8000 | Docs: http://localhost:8000/api/docs');
+  simLog(`[INFO] Backend: ${API} | Docs: ${API}/api/docs`);
 });

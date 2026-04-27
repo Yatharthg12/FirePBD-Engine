@@ -379,6 +379,7 @@ Configuration is loaded from environment variables via `backend/config.py`.
 - The blueprint may have too little geometry for extraction.
 - Try a higher-quality SVG or a cleaner floor plan image.
 - Check backend logs for processing warnings.
+- In hosted deployments, hard refresh the app after deploy so the latest frontend script is loaded.
 
 ### PDF is missing
 - Ensure PDF generation is enabled.
