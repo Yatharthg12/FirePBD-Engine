@@ -275,6 +275,8 @@ Image location format:
 
 `ghcr.io/<owner>/<repo>`
 
+Replace `<owner>` and `<repo>` with your GitHub owner and repository name.
+
 To run the deployed image:
 
 ```bash
