@@ -290,6 +290,7 @@ docker run --rm -p 8000:8000 --env-file .env ghcr.io/<owner>/<repo>:latest
 ```
 
 Set `UVICORN_WORKERS` (for example `-e UVICORN_WORKERS=4`) to tune worker count at runtime.
+Set `UVICORN_PORT` (for example `-e UVICORN_PORT=9000`) if you want a non-default container port.
 
 ---
 
