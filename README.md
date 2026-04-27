@@ -257,6 +257,32 @@ http://127.0.0.1:8000/app
 
 ---
 
+## Deployment with GitHub Actions
+
+This repository includes a GitHub Actions workflow at:
+
+`/.github/workflows/deploy.yml`
+
+What it does on every push to `main` (and on manual trigger):
+
+- builds a Docker image using `Dockerfile`
+- pushes the image to GitHub Container Registry (GHCR)
+- publishes two tags:
+  - `latest`
+  - `sha-<commit>`
+
+Image location format:
+
+`ghcr.io/<owner>/<repo>`
+
+To run the deployed image:
+
+```bash
+docker run --rm -p 8000:8000 ghcr.io/<owner>/<repo>:latest
+```
+
+---
+
 ## Configuration
 
 Configuration is loaded from environment variables via `backend/config.py`.
@@ -377,4 +403,3 @@ This repository is provided for educational purposes only. Replication, use, red
 
 Yatharth Garg  
 Research-Oriented Systems Developer
-
