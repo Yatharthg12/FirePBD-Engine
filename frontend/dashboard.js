@@ -5,7 +5,7 @@
  */
 
 const API = (
-  window.location?.origin &&
+  window.location.origin &&
   window.location.origin !== 'null' &&
   window.location.origin !== 'file://'
 )

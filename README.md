@@ -311,7 +311,7 @@ Recommended setup in Render:
 
 Important:
 - Render injects `PORT`; startup now honors `PORT` automatically.
-- `render.yaml` also pins `PORT=8000` for explicit service binding.
+- `render.yaml` sets `PORT=8000` so service/network binding is explicit and consistent with startup defaults.
 - Worker count follows `UVICORN_WORKERS`, then `WEB_CONCURRENCY`, then defaults to `1`.
 - Set `CORS_ORIGINS` in Render to your frontend origin(s), for example `https://your-frontend.example.com`.
 - The app stores runtime outputs under `backend/data`, so use a disk/external storage if you need persistence across restarts.
