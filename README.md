@@ -281,6 +281,12 @@ To run the deployed image:
 docker run --rm -p 8000:8000 ghcr.io/<owner>/<repo>:latest
 ```
 
+For environment-based configuration, pass variables with `-e` (or `--env-file`), for example:
+
+```bash
+docker run --rm -p 8000:8000 --env-file .env ghcr.io/<owner>/<repo>:latest
+```
+
 ---
 
 ## Configuration
