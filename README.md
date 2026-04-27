@@ -291,6 +291,27 @@ docker run --rm -p 8000:8000 --env-file .env ghcr.io/<owner>/<repo>:latest
 
 Set `UVICORN_WORKERS` (for example `-e UVICORN_WORKERS=4`) to tune worker count at runtime.
 Set `UVICORN_PORT` (for example `-e UVICORN_PORT=9000`) if you want a non-default container port.
+For platforms like Render, `PORT` is detected automatically and takes precedence when set.
+
+### Deploy on Render (Web Service)
+
+This repository includes `/render.yaml` for Render Blueprint deploys.
+
+What is configured:
+- Docker runtime (`Dockerfile` is used directly)
+- health check path: `/api/health`
+- baseline runtime env vars
+
+Recommended setup in Render:
+- Service type: **Web Service**
+- Root directory: repository root
+- Runtime: **Docker**
+- Health check path: `/api/health`
+- Instance type: choose based on load (free works for testing)
+
+Important:
+- Render injects `PORT`; startup now honors `PORT` automatically.
+- The app stores runtime outputs under `backend/data`, so use a disk/external storage if you need persistence across restarts.
 
 ---
 

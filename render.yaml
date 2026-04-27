@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: firepbd-engine
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: ENABLE_MC
+        value: "true"
+      - key: ENABLE_OPT
+        value: "true"
+      - key: ENABLE_PDF
+        value: "true"
