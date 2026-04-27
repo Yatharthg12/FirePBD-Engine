@@ -1,0 +1,32 @@
+# Python runtime
+__pycache__/
+*.py[cod]
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+
+# Test and cache output
+.pytest_cache/
+pytest-cache-files-*/
+.coverage
+htmlcov/
+
+# Local editor state
+.vscode/
+
+# Environment files
+.env
+.env.local
+
+# Generated logs and reports
+logs/
+terminal_run.txt
+backend/data/outputs/
+backend/data/processed/
+backend/data/input_blueprints/
+
+# Large data and notebooks
+datasets/
+*.ipynb_checkpoints/
