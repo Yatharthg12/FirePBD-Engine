@@ -300,7 +300,7 @@ This repository includes `/render.yaml` for Render Blueprint deploys.
 What is configured:
 - Docker runtime (`Dockerfile` is used directly)
 - health check path: `/api/health`
-- baseline runtime env vars
+- baseline runtime env vars (without hardcoding permissive CORS)
 
 Recommended setup in Render:
 - Service type: **Web Service**
@@ -311,6 +311,7 @@ Recommended setup in Render:
 
 Important:
 - Render injects `PORT`; startup now honors `PORT` automatically.
+- Set `CORS_ORIGINS` in Render to your frontend origin(s), for example `https://your-frontend.example.com`.
 - The app stores runtime outputs under `backend/data`, so use a disk/external storage if you need persistence across restarts.
 
 ---
